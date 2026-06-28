@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>World Cup Bracket</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">USA / Mexico / Canada 2026</p>
+          <h1>World Cup Bracket</h1>
+        </div>
+        <nav class="tabs" aria-label="Views">
+          <button class="tab is-active" data-view="bracket">Bracket</button>
+          <button class="tab" data-view="leaderboard">Leaderboard</button>
+          <button class="tab" data-view="admin">Results</button>
+        </nav>
+      </header>
+
+      <main>
+        <section class="setup" id="setup">
+          <div>
+            <h2>Join the pool</h2>
+            <p>Enter your name once. You will get a private edit link for your picks.</p>
+          </div>
+          <form id="joinForm" class="join-form">
+            <input id="displayName" name="displayName" autocomplete="name" placeholder="Your name" required />
+            <button type="submit">Join</button>
+          </form>
+        </section>
+
+        <section class="status-row">
+          <div>
+            <span class="label">Player</span>
+            <strong id="playerName">Not joined yet</strong>
+          </div>
+          <div>
+            <span class="label">Lock rule</span>
+            <strong id="lockState">Submit once, then no edits</strong>
+          </div>
+          <button id="copyInvite" type="button">Copy invite link</button>
+          <button id="copyLink" type="button" disabled>Copy my edit link</button>
+        </section>
+
+        <section class="view is-visible" id="bracketView">
+          <div class="section-heading">
+            <div>
+              <h2>Make your picks</h2>
+              <p id="saveState">Choose every matchup, then submit to lock your bracket.</p>
+            </div>
+            <button id="submitBracket" type="button" disabled>Submit bracket</button>
+          </div>
+          <div class="bracket" id="bracket"></div>
+        </section>
+
+        <section class="view" id="leaderboardView">
+          <div class="section-heading">
+            <h2>Leaderboard</h2>
+            <p>Scores update when match winners are entered or synced.</p>
+          </div>
+          <div class="leaderboard" id="leaderboard"></div>
+        </section>
+
+        <section class="view" id="adminView">
+          <div class="section-heading">
+            <h2>Results</h2>
+            <p id="adminStatus">Enter the admin code to update winners.</p>
+          </div>
+          <form id="adminForm" class="admin-form">
+            <input id="adminToken" name="adminToken" type="password" placeholder="Admin code" required />
+            <button type="button" id="syncResults">Sync winners</button>
+          </form>
+          <div class="results-grid" id="resultsGrid"></div>
+        </section>
+      </main>
+    </div>
+
+    <template id="matchTemplate">
+      <article class="match-card">
+        <div class="match-meta">
+          <span class="round"></span>
+          <span class="kickoff"></span>
+        </div>
+        <h3></h3>
+        <div class="pick-buttons"></div>
+        <p class="match-state"></p>
+      </article>
+    </template>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
