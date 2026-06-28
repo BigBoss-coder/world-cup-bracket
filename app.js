@@ -41,6 +41,7 @@ let state = {
   picks: [],
   allPicks: [],
   players: [],
+  viewingPlayerId: null,
 };
 
 const els = {
@@ -105,8 +106,24 @@ function teamLabel(match, side) {
   return side === "a" ? match.team_a || "TBD" : match.team_b || "TBD";
 }
 
-function pickFor(matchId) {
-  return state.picks.find((pick) => pick.match_id === matchId);
+function activePlayer() {
+  if (state.viewingPlayerId) {
+    return state.players.find((player) => player.id === state.viewingPlayerId) || null;
+  }
+  return state.player;
+}
+
+function activePicks() {
+  const player = activePlayer();
+  return player ? state.allPicks.filter((pick) => pick.player_id === player.id) : [];
+}
+
+function isViewingAnotherBracket() {
+  return Boolean(state.viewingPlayerId && state.viewingPlayerId !== state.player?.id);
+}
+
+function pickFor(matchId, picks = activePicks()) {
+  return picks.find((pick) => pick.match_id === matchId);
 }
 
 function bracketSubmitted() {
@@ -114,9 +131,10 @@ function bracketSubmitted() {
 }
 
 function bracketComplete() {
+  const ownPicks = state.picks;
   return state.matches.every((match) => {
-    const teams = displayTeamsForMatch(match);
-    const pick = pickFor(match.id);
+    const teams = displayTeamsForMatch(match, ownPicks);
+    const pick = pickFor(match.id, ownPicks);
     return pick && teams.includes(pick.picked_winner) && !teams.some(isPlaceholderTeam);
   });
 }
@@ -343,10 +361,12 @@ function render() {
   els.playerName.textContent = state.player ? state.player.display_name : "Not joined yet";
   els.lockState.textContent = bracketSubmitted() ? "Bracket submitted and locked" : "Submit once, then no edits";
   els.copyLink.disabled = !state.player;
-  els.submitBracket.disabled = !state.player || bracketSubmitted() || !bracketComplete();
-  els.submitBracket.textContent = bracketSubmitted() ? "Bracket locked" : "Submit bracket";
+  els.submitBracket.disabled = isViewingAnotherBracket() || !state.player || bracketSubmitted() || !bracketComplete();
+  els.submitBracket.textContent = isViewingAnotherBracket() ? "Viewing bracket" : bracketSubmitted() ? "Bracket locked" : "Submit bracket";
   if (bracketSubmitted()) {
     els.saveState.textContent = `Submitted ${formatKickoff(state.player.submitted_at)}. Your picks are locked.`;
+  } else if (isViewingAnotherBracket()) {
+    els.saveState.textContent = `Viewing ${activePlayer()?.display_name || "another player"}'s bracket.`;
   }
   renderBracket();
   renderLeaderboard();
@@ -374,7 +394,7 @@ function renderMatch(match) {
   const card = template.querySelector(".match-card");
   const selectedPick = pickFor(match.id);
   const locked = isLocked(match);
-  const submitted = bracketSubmitted();
+  const submitted = bracketSubmitted() || isViewingAnotherBracket();
   const teams = displayTeamsForMatch(match);
   const needsFeeders = teams.some(isPlaceholderTeam);
 
@@ -398,8 +418,11 @@ function renderMatch(match) {
     button.type = "button";
     button.textContent = team;
     button.disabled = submitted || locked || isPlaceholderTeam(team);
-    if (selectedPick?.picked_winner === team) button.classList.add("is-picked");
-    if (match.winner === team) button.classList.add("is-correct");
+    if (selectedPick?.picked_winner === team) {
+      button.classList.add("is-picked");
+      if (match.winner === team) button.classList.add("is-correct");
+      if (match.winner && match.winner !== team) button.classList.add("is-wrong");
+    }
     button.addEventListener("click", () => savePick(match, team));
     buttons.appendChild(button);
   });
@@ -425,6 +448,7 @@ function renderLeaderboard() {
         <div class="player-row">
           <span class="rank">${index + 1}</span>
           <strong>${player.display_name}${player.submitted_at ? " · locked" : ""}</strong>
+          <button class="view-bracket" type="button" data-player-id="${player.id}">View bracket</button>
           <span class="score">${player.score}</span>
         </div>
       `,
@@ -469,10 +493,10 @@ function renderResults() {
   });
 }
 
-function displayTeamsForMatch(match) {
+function displayTeamsForMatch(match, picks = activePicks()) {
   if (match.round_index === 0) return [teamLabel(match, "a"), teamLabel(match, "b")];
   return feederMatches(match).map((feeder) => {
-    const pick = feeder ? pickFor(feeder.id) : null;
+    const pick = feeder ? pickFor(feeder.id, picks) : null;
     return pick?.picked_winner || feeder?.winner || pickFeederLabel(feeder);
   });
 }
@@ -533,6 +557,16 @@ els.copyInvite.addEventListener("click", async () => {
 
 els.submitBracket.addEventListener("click", submitBracket);
 
+els.leaderboard.addEventListener("click", (event) => {
+  const button = event.target.closest(".view-bracket");
+  if (!button) return;
+  state.viewingPlayerId = button.dataset.playerId;
+  els.tabs.forEach((item) => item.classList.toggle("is-active", item.dataset.view === "bracket"));
+  document.querySelectorAll(".view").forEach((view) => view.classList.remove("is-visible"));
+  document.querySelector("#bracketView").classList.add("is-visible");
+  render();
+});
+
 els.tabs.forEach((tab) => {
   tab.addEventListener("click", () => {
     els.tabs.forEach((item) => item.classList.toggle("is-active", item === tab));
@@ -560,5 +594,6 @@ init().catch((error) => {
   console.error(error);
   els.saveState.textContent = error.message;
 });
+
 
 
