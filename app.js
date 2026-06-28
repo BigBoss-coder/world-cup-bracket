@@ -1,6 +1,6 @@
 const CONFIG = {
-  supabaseUrl: "https://jtsvjhfyojwichbvzbeb.supabase.co/rest/v1/",
-  supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0c3ZqaGZ5b2p3aWNoYnZ6YmViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2NDIzMDksImV4cCI6MjA5ODIxODMwOX0.UwrwAySx-NvERuaoGWRoglNWBvbh7UB7_eYsSlvm33o",
+  supabaseUrl: "PASTE_SUPABASE_URL_HERE",
+  supabaseAnonKey: "PASTE_SUPABASE_ANON_KEY_HERE",
   poolSlug: "world-cup-bracket",
 };
 
@@ -221,18 +221,14 @@ async function joinPool(displayName) {
     return;
   }
 
-  const { data, error } = await db
-    .from("players")
-    .insert({
-      pool_id: state.pool.id,
-      display_name: displayName,
-      edit_token: editToken,
-    })
-    .select("*")
-    .single();
+  const { data, error } = await db.rpc("join_pool", {
+    p_pool_id: state.pool.id,
+    p_display_name: displayName,
+    p_edit_token: editToken,
+  });
 
   if (error) throw error;
-  state.player = data;
+  state.player = data?.[0] || null;
   setUrlToken(editToken);
   await loadData();
   render();
@@ -512,14 +508,18 @@ function resultFeederLabel(match) {
 
 els.joinForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  await joinPool(els.displayName.value.trim());
+  try {
+    await joinPool(els.displayName.value.trim());
+  } catch (error) {
+    els.saveState.textContent = error.message;
+  }
 });
 
 els.copyLink.addEventListener("click", async () => {
   await navigator.clipboard.writeText(window.location.href);
   els.copyLink.textContent = "Copied";
   setTimeout(() => {
-    els.copyLink.textContent = "Copy my edit link";
+    els.copyLink.textContent = "Copy my bracket link";
   }, 1300);
 });
 
