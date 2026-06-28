@@ -1,5 +1,5 @@
   const CONFIG = {
-  supabaseUrl: "https://jtsvjhfyojwichbvzbeb.supabase.co/rest/v1/",
+  supabaseUrl: "https://jtsvjhfyojwichbvzbeb.supabase.co",
   supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0c3ZqaGZ5b2p3aWNoYnZ6YmViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2NDIzMDksImV4cCI6MjA5ODIxODMwOX0.UwrwAySx-NvERuaoGWRoglNWBvbh7UB7_eYsSlvm33o",
   poolSlug: "world-cup-bracket",
 };
