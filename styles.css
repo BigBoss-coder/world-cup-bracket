@@ -244,8 +244,13 @@ h3 {
 }
 
 .pick.is-correct {
-  border-color: var(--gold);
-  box-shadow: inset 0 0 0 2px var(--gold);
+  border-color: var(--mexico);
+  box-shadow: inset 0 0 0 3px var(--mexico);
+}
+
+.pick.is-wrong {
+  border-color: var(--canada);
+  box-shadow: inset 0 0 0 3px var(--canada);
 }
 
 .match-state {
@@ -262,7 +267,7 @@ h3 {
 
 .player-row {
   display: grid;
-  grid-template-columns: 46px 1fr auto;
+  grid-template-columns: 46px 1fr auto auto;
   align-items: center;
   gap: 14px;
   padding: 14px;
@@ -282,6 +287,14 @@ h3 {
 .score {
   font-size: 1.25rem;
   font-weight: 900;
+}
+
+.view-bracket {
+  min-height: 34px;
+  padding: 0 12px;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  background: white;
 }
 
 .results-grid {
@@ -334,4 +347,13 @@ h3 {
   .result-row {
     grid-template-columns: 1fr;
   }
+
+  .player-row {
+    grid-template-columns: 38px 1fr auto;
+  }
+
+  .view-bracket {
+    grid-column: 2 / -1;
+  }
 }
+
